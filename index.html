@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Discord Offline History</title>
-    
+
     <script type="text/javascript">
 var DISCORD = (function(){
   var REGEX = {
@@ -25,18 +25,18 @@ var DISCORD = (function(){
     customEmojiStatic: /&lt;:([^:]+):(\d+?)&gt;/g,
     customEmojiAnimated: /&lt;a:([^:]+):(\d+?)&gt;/g
   };
-  
+
   var isImageAttachment = function(attachment){
     var dot = attachment.url.lastIndexOf(".");
     var ext = dot === -1 ? "" : attachment.url.substring(dot).toLowerCase();
     return ext === ".png" || ext === ".gif" || ext === ".jpg" || ext === ".jpeg";
   };
-  
+
   var getHumanReadableTime = function(timestamp){
     var date = new Date(timestamp);
     return date.toLocaleDateString() + ", " + date.toLocaleTimeString();
   };
-  
+
   var templateChannelServer;
   var templateChannelPrivate;
   var templateMessage;
@@ -45,7 +45,7 @@ var DISCORD = (function(){
   var templateEmbedRichNoDescription;
   var templateEmbedRichUnsupported;
   var templateEmbedDownload;
-  
+
   return {
     setup: function(){
       templateChannelServer = new TEMPLATE([
@@ -54,44 +54,44 @@ var DISCORD = (function(){
         "<span class='server'>{server.name} ({server.type})</span>",
         "</div>"
       ].join(""));
-      
+
       templateChannelPrivate = new TEMPLATE([
         "<div data-channel='{id}'>",
         "<div class='info'><strong class='name'>{name}</strong><span class='msgcount'>{msgcount}</span></div>",
         "<span class='server'>({server.type})</span>",
         "</div>"
       ].join(""));
-      
+
       templateMessage = new TEMPLATE([
         "<div>",
         "<h2><strong class='username'>{user.name}</strong><span class='info time'>{timestamp}</span>{edit}{jump}</h2>",
         "<div class='message'>{contents}{embeds}{attachments}</div>",
         "</div>"
       ].join(""));
-      
+
       templateEmbedImage = new TEMPLATE([
         "<a href='{url}' class='embed thumbnail'><img src='{url}' alt='(image attachment not found)'></a><br>"
       ].join(""));
-      
+
       templateEmbedRich = new TEMPLATE([
         "<div class='embed download'><a href='{url}' class='title'>{t}</a><p class='desc'>{d}</p></div>"
       ].join(""));
-      
+
       templateEmbedRichNoDescription = new TEMPLATE([
         "<div class='embed download'><a href='{url}' class='title'>{t}</a></div>"
       ].join(""));
-      
+
       templateEmbedRichUnsupported = new TEMPLATE([
         "<div class='embed download'><p>(Formatted embeds are currently not supported)</p></div>"
       ].join(""));
-      
+
       templateEmbedDownload = new TEMPLATE([
         "<a href='{url}' class='embed download'>Download {filename}</a>"
       ].join(""));
     },
-    
+
     isImageAttachment: isImageAttachment,
-    
+
     getChannelHTML: function(channel){
       return (channel.server.type === "SERVER" ? templateChannelServer : templateChannelPrivate).apply(channel, (property, value) => {
         if (property === "server.type"){
@@ -103,7 +103,7 @@ var DISCORD = (function(){
         }
       });
     },
-    
+
     getMessageHTML: function(message){
       return templateMessage.apply(message, (property, value) => {
         if (property === "timestamp"){
@@ -113,12 +113,12 @@ var DISCORD = (function(){
           if (value == null || value.length === 0){
             return "";
           }
-          
+
           var processed = DOM.escapeHTML(value.replace(REGEX.formatUrlNoEmbed, "$1"));
-          
+
           if (STATE.settings.enableFormatting){
             var escapeHtmlMatch = (full, match) => "&#"+match.charCodeAt(0)+";";
-            
+
             processed = processed
               .replace(REGEX.specialEscapedBacktick, "&#96;")
               .replace(REGEX.formatCodeBlock, (full, ignore, match) => "<code class='block'>"+match.replace(REGEX.specialUnescaped, escapeHtmlMatch)+"</code>")
@@ -130,28 +130,28 @@ var DISCORD = (function(){
               .replace(REGEX.formatUnderline, "<u>$1</u>")
               .replace(REGEX.formatStrike, "<s>$1</s>");
           }
-          
+
           var animatedEmojiExtension = STATE.settings.enableAnimatedEmoji ? "gif" : "png";
-          
+
           processed = processed
             .replace(REGEX.formatUrl, "<a href='$1' target='_blank' rel='noreferrer'>$1</a>")
             .replace(REGEX.mentionChannel, (full, match) => "<span class='link mention-chat'>#"+STATE.getChannelName(match)+"</span>")
             .replace(REGEX.mentionUser, (full, match) => "<span class='link mention-user'>@"+STATE.getUserName(match)+"</span>")
             .replace(REGEX.customEmojiStatic, "<img src='https://cdn.discordapp.com/emojis/$2.png' alt=':$1:' title=':$1:' class='emoji'>")
             .replace(REGEX.customEmojiAnimated, "<img src='https://cdn.discordapp.com/emojis/$2."+animatedEmojiExtension+"' alt=':$1:' title=':$1:' class='emoji'>");
-          
+
           return "<p>"+processed+"</p>";
         }
         else if (property === "embeds"){
           if (!value){
             return "";
           }
-          
+
           return value.map(embed => {
             switch(embed.type){
               case "image":
                 return STATE.settings.enableImagePreviews ? templateEmbedImage.apply(embed) : "";
-                
+
               case "rich":
                 return (embed.t ? (embed.d ? templateEmbedRich : templateEmbedRichNoDescription) : templateEmbedRichUnsupported).apply(embed);
             }
@@ -161,7 +161,7 @@ var DISCORD = (function(){
           if (!value){
             return "";
           }
-          
+
           return value.map(attachment => {
             if (isImageAttachment(attachment) && STATE.settings.enableImagePreviews){
               return templateEmbedImage.apply(attachment);
@@ -193,7 +193,7 @@ var DOM = (function(){
     parent.appendChild(ele);
     return ele;
   };
-  
+
   var entityMap = {
     "&": "&amp;",
     "<": "&lt;",
@@ -201,64 +201,64 @@ var DOM = (function(){
     '"': '&quot;',
     "'": '&#39;'
   };
-  
+
   var entityRegex = /[&<>"']/g;
-  
+
   return {
     /*
      * Returns a child element by its ID. Parent defaults to the entire document.
      */
     id: (id, parent) => (parent || document).getElementById(id),
-    
+
     /*
      * Returns an array of all child elements containing the specified class. Parent defaults to the entire document.
      */
     cls: (cls, parent) => Array.prototype.slice.call((parent || document).getElementsByClassName(cls)),
-    
+
     /*
      * Returns an array of all child elements that have the specified tag. Parent defaults to the entire document.
      */
     tag: (tag, parent) => Array.prototype.slice.call((parent || document).getElementsByTagName(tag)),
-    
+
     /*
      * Returns the first child element containing the specified class. Parent defaults to the entire document.
      */
     fcls: (cls, parent) => (parent || document).getElementsByClassName(cls)[0],
-    
+
     /*
      * Creates an element, adds it to the DOM, and returns it.
      */
     createElement: (tag, parent) => createElement(tag, parent),
-    
+
     /*
      * Removes an element from the DOM.
      */
     removeElement: (ele) => ele.parentNode.removeChild(ele),
-    
+
     /*
      * Converts characters to their HTML entity form.
      */
     escapeHTML: (html) => String(html).replace(entityRegex, s => entityMap[s]),
-    
+
     /*
      * Triggers a UTF-8 text file download.
      */
     downloadTextFile: (fileName, fileContents) => {
       var blob = new Blob([fileContents], { "type": "octet/stream" });
-      
+
       if ("msSaveBlob" in window.navigator){
         return window.navigator.msSaveBlob(blob, fileName);
       }
-      
+
       var url = window.URL.createObjectURL(blob);
-      
+
       var ele = createElement("a", document.body);
       ele.href = url;
       ele.download = fileName;
       ele.style.display = "none";
-      
+
       ele.click();
-      
+
       document.body.removeChild(ele);
       window.URL.revokeObjectURL(url);
     }
@@ -267,56 +267,56 @@ var DOM = (function(){
 
 var EMBED = (function(){
   var enabled = false;
-  
+
   var html;
   var generated;
-  
+
   var downloadTextFile = function(fileName, fileContents){
     var blob = new Blob([fileContents], { "type": "octet/stream" });
-    
+
     if ("msSaveBlob" in window.navigator){
       return window.navigator.msSaveBlob(blob, fileName);
     }
-    
+
     var url = window.URL.createObjectURL(blob);
-    
+
     var ele = DOM.createElement("a", document.body);
     ele.href = url;
     ele.download = fileName;
     ele.style.display = "none";
-    
+
     ele.click();
-    
+
     document.body.removeChild(ele);
     window.URL.revokeObjectURL(url);
   };
-  
+
   var utoa = function(str){
     return window.btoa(unescape(encodeURIComponent(str)));
   };
-  
+
   var atou = function(str){
     return decodeURIComponent(escape(window.atob(str)));
   };
-  
+
   return {
     setup: function(){
       enabled = true;
       html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-      
+
       DOM.id("btn-upload-file").insertAdjacentHTML("afterend", `<button id="btn-embed-file" disabled>Embed File</button>`);
       DOM.id("btn-embed-file").addEventListener("click", () => downloadTextFile("embed.html", generated));
     },
-    
+
     onFileRead: function(json){
       if (!enabled){
         return;
       }
-      
+
       DOM.id("btn-embed-file").disabled = false;
       generated = html.replace("</title>", `</title>\n<script type="text/javascript">window.DHT_EMBEDDED = "${utoa(json)}";<\/script>`).replace(`<${document.body.tagName.toLowerCase()}>`, `<body class="embedded">`);
     },
-    
+
     getEmbeddedJSON: function(){
       var embed = window.DHT_EMBEDDED;
       return embed ? atou(embed) : null;
@@ -325,84 +325,88 @@ var EMBED = (function(){
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
-  var embedded = EMBED.getEmbeddedJSON();
-  
-  if (location.search === "?embed" && !embedded){
-    EMBED.setup();
-  }
-  
-  DISCORD.setup();
-  GUI.setup();
-  
-  GUI.onOptionMessagesPerPageChanged(() => {
-    STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
-  });
-  
-  STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
-  
-  GUI.onOptMessageFilterChanged(filter => {
-    STATE.setActiveFilter(filter);
-  });
-  
-  GUI.onNavigationButtonClicked(action => {
-    STATE.updateCurrentPage(action);
-  });
-  
-  STATE.onUsersRefreshed(users => {
-    GUI.updateUserList(users);
-  });
-  
-  STATE.onChannelsRefreshed((channels, selected) => {
-    GUI.updateChannelList(channels, selected, STATE.selectChannel);
-  });
-  
-  STATE.onMessagesRefreshed(messages => {
-    GUI.updateNavigation(STATE.getCurrentPage(), STATE.getPageCount());
-    GUI.updateMessageList(messages);
-    GUI.scrollMessagesToTop();
-  });
-  
-  var loadJSON = function(json, errParse, errInvalid){
-    var obj;
-    
-    try{
-      obj = JSON.parse(json);
-      EMBED.onFileRead(json);
-    }catch(e){
-      console.error(e);
-      alert(errParse);
-      return;
+  fetch("dht.json")
+  .then(res => res.text())
+  .then(data => {
+    var embedded = EMBED.getEmbeddedJSON();
+    embedded = data
+    if (location.search === "?embed" && !embedded){
+      EMBED.setup();
     }
-    
-    if (SAVEFILE.isValid(obj)){
-      STATE.uploadFile(new SAVEFILE(obj));
-    }
-    else{
-      alert(errInvalid);
-    }
-  };
-  
-  if (embedded){
-    loadJSON(embedded, "Could not parse embedded file, see console for details.", "Embedded file has an invalid format.");
-  }
-  else{
-    GUI.onFileUploaded(files => {
-      if (files.length === 1){
-        var file = files[0];
-        var reader = new FileReader();
-        
-        STATE.setUploadedFileName(file.name);
 
-        reader.onload = () => loadJSON(reader.result, "Could not parse '"+file.name+"', see console for details.", "File '"+file.name+"' has an invalid format.");
-        reader.readAsText(file, "UTF-8");
+    DISCORD.setup();
+    GUI.setup();
+
+    GUI.onOptionMessagesPerPageChanged(() => {
+      STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
+    });
+
+    STATE.setMessagesPerPage(GUI.getOptionMessagesPerPage());
+
+    GUI.onOptMessageFilterChanged(filter => {
+      STATE.setActiveFilter(filter);
+    });
+
+    GUI.onNavigationButtonClicked(action => {
+      STATE.updateCurrentPage(action);
+    });
+
+    STATE.onUsersRefreshed(users => {
+      GUI.updateUserList(users);
+    });
+
+    STATE.onChannelsRefreshed((channels, selected) => {
+      GUI.updateChannelList(channels, selected, STATE.selectChannel);
+    });
+
+    STATE.onMessagesRefreshed(messages => {
+      GUI.updateNavigation(STATE.getCurrentPage(), STATE.getPageCount());
+      GUI.updateMessageList(messages);
+      GUI.scrollMessagesToTop();
+    });
+
+    var loadJSON = function(json, errParse, errInvalid){
+      var obj;
+
+      try{
+        obj = JSON.parse(json);
+        EMBED.onFileRead(json);
+      }catch(e){
+        console.error(e);
+        alert(errParse);
+        return;
+      }
+
+      if (SAVEFILE.isValid(obj)){
+        STATE.uploadFile(new SAVEFILE(obj));
       }
       else{
-        alert("Please, select only one file.");
+        alert(errInvalid);
       }
-      
-      return true;
-    });
-  }
+    };
+
+    if (embedded){
+      loadJSON(embedded, "Could not parse embedded file, see console for details.", "Embedded file has an invalid format.");
+    }
+    else{
+      GUI.onFileUploaded(files => {
+        if (files.length === 1){
+          var file = files[0];
+          var reader = new FileReader();
+
+          STATE.setUploadedFileName(file.name);
+
+          reader.onload = () => loadJSON(reader.result, "Could not parse '"+file.name+"', see console for details.", "File '"+file.name+"' has an invalid format.");
+          reader.readAsText(file, "UTF-8");
+        }
+        else{
+          alert("Please, select only one file.");
+        }
+
+        return true;
+      });
+    }
+    })
 });
 
 var GUI = (function(){
@@ -410,69 +414,69 @@ var GUI = (function(){
   var eventOnOptMessagesPerPageChanged;
   var eventOnOptMessageFilterChanged;
   var eventOnNavButtonClicked;
-  
+
   var getActiveFilter = function(){
     var active = DOM.fcls("active", DOM.id("opt-filter-list"));
-    
+
     return active && active.value !== "" ? {
       "type": active.getAttribute("data-filter-type"),
       "value": active.value
     } : null;
   };
-  
+
   var triggerFilterChanged = function(){
     var activeFilter = getActiveFilter();
     DOM.id("opt-save-filtered").classList.toggle("active", activeFilter != null);
-    
+
     eventOnOptMessageFilterChanged && eventOnOptMessageFilterChanged(activeFilter);
   };
-  
+
   var showModal = function(width, html){
     var dialog = DOM.id("dialog");
     dialog.innerHTML = html;
     dialog.style.width = width+"px";
     dialog.style.marginLeft = (-width/2)+"px";
-    
+
     DOM.id("modal").classList.add("visible");
     return dialog;
   };
-  
+
   // -------------
   // Modal dialogs
   // -------------
-  
+
   var showSettingsModal = function(){
     showModal(560, `
 <label><input id='dht-cfg-imgpreviews' type='checkbox'> Image Previews</label><br>
 <label><input id='dht-cfg-formatting' type='checkbox'> Message Formatting</label><br>
 <label><input id='dht-cfg-animemoji' type='checkbox'> Animated Emoji</label><br>`);
-    
+
     var setupCheckBox = function(id, settingName){
       var ele = DOM.id(id);
       ele.checked = STATE.settings[settingName];
       ele.addEventListener("change", () => STATE.settings[settingName] = ele.checked);
     };
-    
+
     setupCheckBox("dht-cfg-imgpreviews", "enableImagePreviews");
     setupCheckBox("dht-cfg-formatting", "enableFormatting");
     setupCheckBox("dht-cfg-animemoji", "enableAnimatedEmoji");
   };
-  
+
   var showInfoModal = function(){
     var linkGH = "https://github.com/chylex/Discord-History-Tracker";
-    
+
     showModal(560, `
 <p>Discord History Tracker is developed by <a href='https://chylex.com'>chylex</a> as an <a href='${linkGH}/blob/master/LICENSE.md'>open source</a> project.</p>
 <sub>v.23, released 19 May 2020</sub>
 <p>Please, report any issues and suggestions to the <a href='${linkGH}/issues'>tracker</a>. If you want to support the development, please spread the word and consider <a href='https://www.patreon.com/chylex'>becoming a patron</a> or <a href='https://ko-fi.com/chylex'>buying me a coffee</a>. Any support is appreciated!</p>
 <p><a href='${linkGH}/issues'>Issue Tracker</a> &nbsp;&mdash;&nbsp; <a href='${linkGH}'>GitHub Repository</a> &nbsp;&mdash;&nbsp; <a href='https://twitter.com/chylexmc'>Developer's Twitter</a></p>`);
   };
-  
+
   return {
     // ---------
     // GUI setup
     // ---------
-    
+
     /*
      * Hooks all event listeners into the DOM.
      */
@@ -480,46 +484,46 @@ var GUI = (function(){
       var inputUploadedFile = DOM.id("uploaded-file");
       var inputMessageFilter = DOM.id("opt-messages-filter");
       var containerFilterList = DOM.id("opt-filter-list");
-      
+
       var resetActiveFilter = function(){
         inputMessageFilter.value = "";
         inputMessageFilter.dispatchEvent(new Event("change"));
-        
+
         DOM.id("opt-filter-contents").value = "";
         DOM.id("opt-save-filtered").classList.remove("active");
       };
-      
+
       DOM.id("btn-upload-file").addEventListener("click", () => {
         inputUploadedFile.click();
       });
-      
+
       inputUploadedFile.addEventListener("change", () => {
         if (eventOnFileUploaded && eventOnFileUploaded(inputUploadedFile.files)){
           inputUploadedFile.value = null;
           resetActiveFilter();
         }
       });
-      
+
       inputMessageFilter.value = ""; // required to prevent browsers from remembering old value
-      
+
       inputMessageFilter.addEventListener("change", () => {
         DOM.cls("active", containerFilterList).forEach(ele => ele.classList.remove("active"));
-        
+
         if (inputMessageFilter.value){
           containerFilterList.querySelector("[data-filter-type='"+inputMessageFilter.value+"']").classList.add("active");
         }
-        
+
         triggerFilterChanged();
       });
-      
+
       Array.prototype.forEach.call(containerFilterList.children, ele => {
         ele.addEventListener(ele.tagName === "SELECT" ? "change" : "input", e => triggerFilterChanged());
       });
-      
+
       DOM.id("opt-messages-per-page").addEventListener("change", () => {
         eventOnOptMessagesPerPageChanged && eventOnOptMessagesPerPageChanged();
       });
-      
+
       DOM.id("btn-save-filtered").addEventListener("click", () => {
         if (confirm("Filtering only removes messages, all users and servers will remain in the new archive. Continue?")){
           STATE.saveFilteredMessages();
@@ -528,55 +532,55 @@ var GUI = (function(){
 
       DOM.tag("button", DOM.fcls("nav")).forEach(button => {
         button.disabled = true;
-        
+
         button.addEventListener("click", () => {
           eventOnNavButtonClicked && eventOnNavButtonClicked(button.getAttribute("data-nav"));
         });
       });
-      
+
       DOM.id("btn-settings").addEventListener("click", () => {
         showSettingsModal();
       });
-      
+
       DOM.id("btn-about").addEventListener("click", () => {
         showInfoModal();
       });
-      
+
       DOM.id("messages").addEventListener("click", e => {
         var jump = e.target.getAttribute("data-jump");
-        
+
         if (jump){
           resetActiveFilter();
-          
+
           var index = STATE.navigateToMessage(jump);
           DOM.id("messages").children[index].scrollIntoView();
         }
       });
-      
+
       DOM.id("overlay").addEventListener("click", () => {
         DOM.id("modal").classList.remove("visible");
         DOM.id("dialog").innerHTML = "";
       });
     },
-    
+
     // -----------------
     // Event registering
     // -----------------
-    
+
     /*
      * Sets a callback for when a file is uploaded. The callback takes a single argument, which is the file object array, and should return true to reset the input.
      */
     onFileUploaded: function(callback){
       eventOnFileUploaded = callback;
     },
-    
+
     /*
      * Sets a callback for when the user changes the messages per page option. The callback is not passed any arguments.
      */
     onOptionMessagesPerPageChanged: function(callback){
       eventOnOptMessagesPerPageChanged = callback;
     },
-    
+
     /*
      * Sets a callback for when the user changes the active filter. The callback is passed either null or an object such as { type: <filter type>, value: <filter value> }.
      */
@@ -590,11 +594,11 @@ var GUI = (function(){
     onNavigationButtonClicked: function(callback){
       eventOnNavButtonClicked = callback;
     },
-    
+
     // ----------------------
     // Options and navigation
     // ----------------------
-    
+
     /*
      * Returns the selected amount of messages per page.
      */
@@ -608,24 +612,24 @@ var GUI = (function(){
     updateNavigation: function(currentPage, totalPages){
       DOM.id("nav-page-current").innerHTML = currentPage;
       DOM.id("nav-page-total").innerHTML = totalPages || "?";
-      
+
       DOM.id("nav-first").disabled = currentPage === 1;
       DOM.id("nav-prev").disabled = currentPage === 1;
       DOM.id("nav-pick").disabled = (totalPages || 0) <= 1;
       DOM.id("nav-next").disabled = currentPage === (totalPages || 1);
       DOM.id("nav-last").disabled = currentPage === (totalPages || 1);
     },
-    
+
     // --------------
     // Updating lists
     // --------------
-    
+
     /*
      * Updates the channel list and sets up their click events. The callback is triggered whenever a channel is selected, and takes the channel ID as its argument.
      */
     updateChannelList: function(channels, selected, callback){
       var eleChannels = DOM.id("channels");
-      
+
       if (!channels){
         eleChannels.innerHTML = "";
       }
@@ -633,9 +637,9 @@ var GUI = (function(){
         if (getActiveFilter() != null){
           channels = channels.filter(channel => channel.msgcount > 0);
         }
-        
+
         eleChannels.innerHTML = channels.map(channel => DISCORD.getChannelHTML(channel)).join("");
-        
+
         Array.prototype.forEach.call(eleChannels.children, ele => {
           ele.addEventListener("click", e => {
             var currentChannel = DOM.fcls("active", eleChannels);
@@ -648,44 +652,44 @@ var GUI = (function(){
             callback(ele.getAttribute("data-channel"));
           });
         });
-        
+
         if (selected){
           var activeChannel = eleChannels.querySelector("[data-channel='"+selected+"']");
           activeChannel && activeChannel.classList.add("active");
         }
       }
     },
-    
+
     // ------------
     // Message list
     // ------------
-    
+
     /*
      * Updates the message list.
      */
     updateMessageList: function(messages){
       DOM.id("messages").innerHTML = messages ? messages.map(message => DISCORD.getMessageHTML(message)).join("") : "";
     },
-    
+
     /*
      * Updates the user filter list.
      */
     updateUserList: function(users){
       var eleSelect = DOM.id("opt-filter-user");
-      
+
       while(eleSelect.length > 1){
         eleSelect.remove(1);
       }
-      
+
       var options = [];
-      
+
       for(var key of Object.keys(users)){
         var option = document.createElement("option");
         option.value = key;
         option.text = users[key].name;
         options.push(option);
       }
-      
+
       options.sort((a, b) => a.text.toLocaleLowerCase().localeCompare(b.text.toLocaleLowerCase()));
       options.forEach(option => eleSelect.add(option));
     },
@@ -730,7 +734,7 @@ PROCESSOR.SORTER = {
       return key1.length > key2.length ? 1 : -1;
     }
   },
-  
+
   newestToOldest: (key1, key2) => {
     if (key1.length === key2.length){
       return key1 > key2 ? -1 : key1 < key2 ? 1 : 0;
@@ -744,10 +748,10 @@ PROCESSOR.SORTER = {
 class SAVEFILE{
   constructor(parsedObj){
     var me = this;
-    
+
     me.meta = parsedObj.meta;
     me.data = parsedObj.data;
-    
+
     me.meta.users = me.meta.users || {};
     me.meta.userindex = me.meta.userindex || [];
     me.meta.servers = me.meta.servers || [];
@@ -793,19 +797,19 @@ class SAVEFILE{
   filterToJson(filterFunction){
     var newMeta = JSON.parse(JSON.stringify(this.meta));
     var newData = {};
-    
+
     for(let channel of Object.keys(this.getChannels())){
       var messages = this.getMessages(channel);
       var retained = {};
-      
+
       for(let key of Object.keys(messages)){
         var message = messages[key];
-        
+
         if (filterFunction(message)){
           retained[key] = message;
         }
       }
-      
+
       if (Object.keys(retained).length > 0){
         newData[channel] = retained;
       }
@@ -813,7 +817,7 @@ class SAVEFILE{
         delete newMeta.channels[channel];
       }
     }
-    
+
     return JSON.stringify({
       "meta": newMeta,
       "data": newData
@@ -823,36 +827,36 @@ class SAVEFILE{
 
 var STATE = (function(){
   var ROOT = {};
-  
+
   // ---------------
   // State variables
   // ---------------
-  
+
   var FILE;
   var MSGS;
-  
+
   var uploadedFileName;
   var filterFunction;
   var selectedChannel;
   var currentPage;
   var messagesPerPage;
-  
+
   // ----------------------------------
   // Channel and message refresh events
   // ----------------------------------
-  
+
   var eventOnChannelsRefreshed;
   var eventOnMessagesRefreshed;
   var eventOnUsersRefreshed;
-  
+
   var triggerChannelsRefreshed = function(selectedChannel){
     eventOnChannelsRefreshed && eventOnChannelsRefreshed(ROOT.getChannelList(), selectedChannel);
   };
-  
+
   var triggerMessagesRefreshed = function(){
     eventOnMessagesRefreshed && eventOnMessagesRefreshed(ROOT.getMessageList());
   };
-  
+
   var triggerUsersRefreshed = function(){
     eventOnUsersRefreshed && eventOnUsersRefreshed(ROOT.getUserList());
   };
@@ -860,11 +864,11 @@ var STATE = (function(){
   ROOT.onChannelsRefreshed = function(callback){
     eventOnChannelsRefreshed = callback;
   };
-    
+
   ROOT.onMessagesRefreshed = function(callback){
     eventOnMessagesRefreshed = callback;
   };
-  
+
   ROOT.onUsersRefreshed = function(callback){
     eventOnUsersRefreshed = callback;
   };
@@ -876,15 +880,15 @@ var STATE = (function(){
   ROOT.uploadFile = function(file){
     FILE = file;
     MSGS = null;
-    
+
     selectedChannel = null;
     currentPage = 1;
-    
+
     triggerUsersRefreshed();
     triggerChannelsRefreshed();
     triggerMessagesRefreshed();
   };
-  
+
   ROOT.setUploadedFileName = function(name){
     uploadedFileName = name;
   };
@@ -896,19 +900,19 @@ var STATE = (function(){
   ROOT.getUserName = function(user){
     return FILE.getUserById(user).name;
   };
-  
+
   // --------------------------
   // Channel list and selection
   // --------------------------
-  
+
   var getFilteredMessageKeys = function(channel){
     var messages = FILE.getMessages(channel);
     var keys = Object.keys(messages);
-    
+
     if (filterFunction){
       keys = keys.filter(key => filterFunction(messages[key]));
     }
-    
+
     return keys;
   };
 
@@ -916,7 +920,7 @@ var STATE = (function(){
     if (!FILE){
       return [];
     }
-    
+
     var channels = FILE.getChannels();
 
     return Object.keys(channels).map(key => ({
@@ -927,7 +931,7 @@ var STATE = (function(){
     })).sort((ac, bc) => {
       var as = ac.server;
       var bs = bc.server;
-      
+
       return as.type.localeCompare(bs.type, "en") ||
              as.name.toLocaleLowerCase().localeCompare(bs.name.toLocaleLowerCase(), undefined, { numeric: true }) ||
              ac.name.toLocaleLowerCase().localeCompare(bc.name.toLocaleLowerCase(), undefined, { numeric: true });
@@ -937,7 +941,7 @@ var STATE = (function(){
   ROOT.selectChannel = function(channel){
     currentPage = 1;
     selectedChannel = channel;
-    
+
     MSGS = getFilteredMessageKeys(channel).sort(PROCESSOR.SORTER.oldestToNewest);
     triggerMessagesRefreshed();
   };
@@ -945,11 +949,11 @@ var STATE = (function(){
   ROOT.getSelectedChannel = function(){
     return selectedChannel;
   };
-  
+
   // ------------
   // Message list
   // ------------
-  
+
   ROOT.getMessageList = function(){
     if (!MSGS){
       return [];
@@ -972,18 +976,18 @@ var STATE = (function(){
       };
     });
   };
-  
+
   ROOT.navigateToMessage = function(id){
     if (!MSGS){
       return 0;
     }
-    
+
     var index = MSGS.indexOf(id);
-    
+
     if (index == -1){
       return 0;
     }
-    
+
     currentPage = Math.max(1, Math.min(ROOT.getPageCount(), 1 + Math.floor(index / messagesPerPage)));
     triggerMessagesRefreshed();
     return index % messagesPerPage;
@@ -992,27 +996,27 @@ var STATE = (function(){
   // ----------
   // Filtering
   // ----------
-  
+
   ROOT.hasActiveFilter = false;
-  
+
   ROOT.setActiveFilter = function(filter){
     switch(filter ? filter.type : ""){
       case "user":
         filterFunction = PROCESSOR.FILTER.byUser(FILE.getUserIndex(filter.value));
         break;
-        
+
       case "contents":
         filterFunction = PROCESSOR.FILTER.byContents(filter.value);
         break;
-        
+
       case "withimages":
         filterFunction = PROCESSOR.FILTER.withImages();
         break;
-        
+
       case "withdownloads":
         filterFunction = PROCESSOR.FILTER.withDownloads();
         break;
-        
+
       case "edited":
         filterFunction = PROCESSOR.FILTER.isEdited();
         break;
@@ -1021,19 +1025,19 @@ var STATE = (function(){
         filterFunction = null;
         break;
     }
-    
+
     ROOT.hasActiveFilter = filterFunction != null;
-    
+
     triggerChannelsRefreshed(selectedChannel);
-    
+
     if (selectedChannel){
       ROOT.selectChannel(selectedChannel); // resets current page and updates messages
     }
   };
-  
+
   ROOT.saveFilteredMessages = function(){
     var saveFileName = "dht-filtered.txt";
-    
+
     if (uploadedFileName){
       if (uploadedFileName.includes("filtered")){
         saveFileName = uploadedFileName;
@@ -1042,14 +1046,14 @@ var STATE = (function(){
         saveFileName = uploadedFileName.replace(".", "-filtered.");
       }
     }
-    
+
     DOM.downloadTextFile(saveFileName, FILE.filterToJson(filterFunction));
   };
-  
+
   // -----
   // Users
   // -----
-  
+
   ROOT.getUserList = function(){
     return FILE ? FILE.getUsers() : [];
   };
@@ -1069,41 +1073,41 @@ var STATE = (function(){
       case "prev": currentPage = Math.max(1, currentPage-1); break;
       case "next": currentPage = Math.min(ROOT.getPageCount(), currentPage+1); break;
       case "last": currentPage = ROOT.getPageCount(); break;
-      
+
       case "pick":
         var page = parseInt(prompt("Select page:", currentPage), 10);
-        
+
         if (!page && page !== 0){
           return;
         }
-        
+
         currentPage = Math.max(1, Math.min(ROOT.getPageCount(), page));
         break;
     }
-    
+
     triggerMessagesRefreshed();
   };
 
   ROOT.getCurrentPage = function(){
     var total = ROOT.getPageCount();
-    
+
     if (currentPage > total && total > 0){
       currentPage = total;
     }
-    
+
     return currentPage || 1;
   };
 
   ROOT.getPageCount = function(){
     return !MSGS ? 0 : (!messagesPerPage ? 1 : Math.ceil(MSGS.length/messagesPerPage));
   };
-  
+
   // --------
   // Settings
   // --------
-  
+
   ROOT.settings = {};
-  
+
   var getStorageItem = (property) => {
     try{
       return localStorage.getItem(property);
@@ -1112,7 +1116,7 @@ var STATE = (function(){
       return null;
     }
   };
-  
+
   var setStorageItem = (property, value) => {
     try{
       localStorage.setItem(property, value);
@@ -1120,10 +1124,10 @@ var STATE = (function(){
       console.error(e);
     }
   };
-  
+
   var defineSettingProperty = (property, defaultValue, storageToValue) => {
     var name = "_"+property;
-    
+
     Object.defineProperty(ROOT.settings, property, {
       get: (() => ROOT.settings[name]),
       set: (value => {
@@ -1132,26 +1136,26 @@ var STATE = (function(){
         setStorageItem(property, value);
       })
     });
-    
+
     var stored = getStorageItem(property);
-    
+
     if (stored !== null){
       stored = storageToValue(stored);
     }
-    
+
     ROOT.settings[name] = stored === null ? defaultValue : stored;
   };
-  
+
   var fromBooleanString = (value) => {
     if (value === "true") return true;
     if (value === "false") return false;
     return null;
   };
-  
+
   defineSettingProperty("enableImagePreviews", true, fromBooleanString);
   defineSettingProperty("enableFormatting", true, fromBooleanString);
   defineSettingProperty("enableAnimatedEmoji", true, fromBooleanString);
-  
+
   // End
   return ROOT;
 })();
@@ -1166,12 +1170,12 @@ class TEMPLATE{
   apply(obj, processor){
     return this.contents.replace(TEMPLATE_REGEX, (full, match) => {
       var value = match.split(".").reduce((o, property) => o[property], obj);
-      
+
       if (processor){
         var updated = processor(match, value);
         return typeof updated === "undefined" ? DOM.escapeHTML(value) : updated;
       }
-      
+
       return DOM.escapeHTML(value);
     });
   }
@@ -1522,11 +1526,11 @@ body.embedded .hide-embedded {
     <div id="menu">
       <input id="uploaded-file" type="file" style="display:none">
       <button id="btn-upload-file" class="hide-embedded">Load File</button>
-      
+
       <div class="splitter hide-embedded"></div>
-      
+
       <button id="btn-settings">Settings</button>
-      
+
       <div> <!-- needed to stop the select from messing up -->
         <select id="opt-messages-per-page">
           <option value="50">50 messages per page&nbsp;</option>
@@ -1545,9 +1549,9 @@ body.embedded .hide-embedded {
         <button id="nav-next" data-nav="next" class="icon">&rsaquo;</button>
         <button id="nav-last" data-nav="last" class="icon">&raquo;</button>
       </div>
-      
+
       <div class="splitter"></div>
-      
+
       <div> <!-- needed to stop the select from messing up -->
         <select id="opt-messages-filter">
           <option value="">No filter&nbsp;</option>
@@ -1558,7 +1562,7 @@ body.embedded .hide-embedded {
           <option value="edited">Only edited messages&nbsp;</option>
         </select>
       </div>
-      
+
       <div id="opt-filter-list">
         <select id="opt-filter-user" data-filter-type="user">
           <option value="">Select user...</option>
@@ -1568,22 +1572,22 @@ body.embedded .hide-embedded {
         <input type="hidden" data-filter-type="withdownloads" value="1">
         <input type="hidden" data-filter-type="edited" value="1">
       </div>
-      
+
       <div id="opt-save-filtered">
         <div class="splitter"></div>
         <button id="btn-save-filtered">Save Filtered Messages</button>
       </div>
-      
+
       <div class="separator"></div>
-      
+
       <button id="btn-about">About</button>
     </div>
-    
+
     <div id="app">
       <div id="channels"></div>
       <div id="messages"></div>
     </div>
-    
+
     <div id="modal">
       <div id="overlay"></div>
       <div id="dialog"></div>
